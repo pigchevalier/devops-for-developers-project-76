@@ -7,6 +7,9 @@
     - role: geerlingguy.docker
       tags: prepare
 
+- hosts: webservers
+  become: true
+
   tasks:
     - name: Create Redmine app directory
       ansible.builtin.file:
@@ -38,10 +41,6 @@
           - "{{ redmine_port }}:{{ redmine_container_port }}"
       tags: deploy
 
-- hosts: webservers
-  become: true
-
-  tasks:
     - name: Create Datadog http_check config directory
       ansible.builtin.file:
         path: /opt/datadog-agent/conf.d/http_check.d
@@ -50,6 +49,7 @@
         group: root
         mode: "0755"
       tags: deploy
+
     - name: Create Datadog conf file
       ansible.builtin.template:
         src: conf.yml.j2
@@ -58,6 +58,7 @@
         group: root
         mode: "0600"
       tags: deploy
+
     - name: Run Datadog agent container
       community.docker.docker_container:
         name: "{{ datadog_agent_container_name }}"

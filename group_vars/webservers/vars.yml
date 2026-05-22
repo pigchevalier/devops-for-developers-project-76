@@ -1,4 +1,2 @@
-datadog_agent_image: registry.datadoghq.com/agent:7
-datadog_agent_container_name: dd-agent
-datadog_site: datadoghq.eu
 datadog_api_key: "{{ vault_datadog_api_key }}"
+redmine_db_password: "{{ vault_redmine_db_password }}"
