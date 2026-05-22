@@ -1,7 +1,7 @@
-.PHONY: install prepare deploy
+.PHONY: install prepare deploy edit_vault
 
 install:
-	ansible-galaxy install -r requirements.yml
+	ansible-galaxy install -r requirements.yml --force
 
 prepare:
 	ansible-playbook -i inventory.ini playbook.yml --tags prepare
