@@ -1,18 +1,3 @@
-pip_install_packages:
-  - name: docker
-
-redmine_image: redmine
-redmine_container_name: redmine
-redmine_app_dir: /opt/redmine
-redmine_port: 80
-redmine_container_port: 3000
-
-redmine_db_host: rc1b-l8ciouv7behhso42.mdb.yandexcloud.net
-redmine_db_port: 6432
-redmine_db_username: user1
-redmine_db_password: "{{ vault_redmine_db_password }}"
-redmine_db_database: db1
-
 datadog_agent_image: registry.datadoghq.com/agent:7
 datadog_agent_container_name: dd-agent
 datadog_site: datadoghq.eu
