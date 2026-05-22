@@ -1,0 +1,84 @@
+- hosts: all
+  become: true
+
+  roles:
+    - role: geerlingguy.pip
+      tags: prepare
+    - role: geerlingguy.docker
+      tags: prepare
+
+  tasks:
+    - name: Create Redmine app directory
+      ansible.builtin.file:
+        path: "{{ redmine_app_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      tags: deploy
+
+    - name: Create Redmine env file
+      ansible.builtin.template:
+        src: redmine.env.j2
+        dest: "{{ redmine_app_dir }}/.env"
+        owner: root
+        group: root
+        mode: "0600"
+      tags: deploy
+
+    - name: Run Redmine container
+      community.docker.docker_container:
+        name: "{{ redmine_container_name }}"
+        image: "{{ redmine_image }}"
+        state: started
+        restart_policy: always
+        recreate: true
+        env_file: "{{ redmine_app_dir }}/.env"
+        published_ports:
+          - "{{ redmine_port }}:{{ redmine_container_port }}"
+      tags: deploy
+
+- hosts: webservers
+  become: true
+
+  tasks:
+    - name: Create Datadog http_check config directory
+      ansible.builtin.file:
+        path: /opt/datadog-agent/conf.d/http_check.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      tags: deploy
+    - name: Create Datadog conf file
+      ansible.builtin.template:
+        src: conf.yml.j2
+        dest: "/opt/datadog-agent/conf.d/http_check.d/conf.yaml"
+        owner: root
+        group: root
+        mode: "0600"
+      tags: deploy
+    - name: Run Datadog agent container
+      community.docker.docker_container:
+        name: "{{ datadog_agent_container_name }}"
+        image: "{{ datadog_agent_image }}"
+        state: started
+        restart_policy: always
+        recreate: true
+        env:
+          DD_API_KEY: "{{ datadog_api_key }}"
+          DD_SITE: "{{ datadog_site }}"
+          DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+          DD_LOGS_ENABLED: "true"
+          DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION: "true"
+          DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+          DD_CONTAINER_EXCLUDE_LOGS: "name:{{ datadog_agent_container_name }}"
+        volumes:
+          - /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+          - /proc/:/host/proc/:ro
+          - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+          - /var/lib/docker/containers:/var/lib/docker/containers:ro
+          - /opt/datadog-agent/conf.d/http_check.d/conf.yaml:/etc/datadog-agent/conf.d/http_check.d/conf.yaml:ro
+      tags: deploy
+    
