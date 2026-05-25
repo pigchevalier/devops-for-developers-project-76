@@ -1,4 +1,4 @@
-.PHONY: install prepare deploy edit_vault
+.PHONY: install prepare deploy edit_vault datadog
 
 install:
 	ansible-galaxy install -r requirements.yml --force
@@ -11,3 +11,6 @@ deploy:
 
 edit_vault:
 	ansible-vault edit group_vars/webservers/vault.yml
+
+datadog:
+	ansible-playbook -i inventory.ini playbook.yml --tags datadog --ask-vault-pass
